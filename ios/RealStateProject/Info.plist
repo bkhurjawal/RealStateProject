@@ -33,6 +33,11 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app requires access to your location to unlock homes.</string>
+		<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app requires access to your location even in the background to unlock homes.</string>
+
+	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
