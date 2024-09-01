@@ -16,3 +16,14 @@ export const unlockHome = async (homeId: string) => {
     }
   });
 };
+
+export const lockHome = async (homeId: string) => {
+  return new Promise((resolve, reject) => {
+    // Simulate success/failure response
+    if (Math.random() > 0.5) {
+      resolve({message: 'Home locked successfully!'});
+    } else {
+      reject({message: 'Failed to lock home.'});
+    }
+  });
+};

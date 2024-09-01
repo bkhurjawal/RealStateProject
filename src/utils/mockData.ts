@@ -16,3 +16,14 @@ export const homes = [
     longitude: 77.42293351140181,
   },
 ];
+
+export const users = [
+  {
+    username: 'realestateadmin',
+    password: 'admin123',
+  },
+  {
+    username: 'agent007',
+    password: 'password007',
+  },
+];

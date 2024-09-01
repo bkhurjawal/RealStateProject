@@ -3,18 +3,20 @@ import {
   View,
   Text,
   Image,
-  Button,
+  TouchableOpacity,
   Alert,
   Platform,
   PermissionsAndroid,
+  StyleSheet,
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
-import {unlockHome} from '../utils/api';
+import {unlockHome, lockHome} from '../utils/api';
 import {useAuth} from '../context/AuthContext';
 
 const HomeDetailsScreen: React.FC = ({route}) => {
   const {home} = route.params;
   const [canUnlock, setCanUnlock] = useState(false);
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const {isAuthenticated} = useAuth();
 
   const requestLocationPermission = async () => {
@@ -51,6 +53,7 @@ const HomeDetailsScreen: React.FC = ({route}) => {
       );
       return;
     }
+
     Geolocation.getCurrentPosition(
       position => {
         const {latitude, longitude} = position.coords;
@@ -60,10 +63,16 @@ const HomeDetailsScreen: React.FC = ({route}) => {
           home.latitude,
           home.longitude,
         );
-        console.log('distance', distance);
-        // setCanUnlock(distance <= 0.03); // 30 meters
-        setCanUnlock(distance <= 4.03); // 30 meters
-        // setCanUnlock(true);
+
+        if (distance <= 0.03) {
+          setCanUnlock(true); // User is within 30 meters
+        } else {
+          setCanUnlock(false);
+          Alert.alert(
+            'Out of Range',
+            'You must be within 30 meters to unlock the home.',
+          );
+        }
       },
       error => Alert.alert('Error', error.message),
       {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
@@ -74,24 +83,43 @@ const HomeDetailsScreen: React.FC = ({route}) => {
     try {
       const response = await unlockHome(home.id);
       Alert.alert('Success', response.message);
+      setIsUnlocked(true);
     } catch (error) {
       Alert.alert('Error', error.message);
     }
   };
 
-  console.log('isAuthenticated', isAuthenticated);
+  const handleLock = async () => {
+    try {
+      const response = await lockHome(home.id);
+      Alert.alert('Success', response.message);
+      setIsUnlocked(false);
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
 
   return (
-    <View>
-      <Image source={{uri: home.image}} style={{width: '100%', height: 200}} />
-      <Text>{home.address}</Text>
-      <Text>{home.description}</Text>
+    <View style={styles.container}>
+      <Image source={{uri: home.image}} style={styles.image} />
+      <Text style={styles.title}>{home.address}</Text>
+      <Text style={styles.description}>{home.description}</Text>
       {isAuthenticated && (
         <>
           {canUnlock ? (
-            <Button title="Unlock" onPress={handleUnlock} />
+            isUnlocked ? (
+              <TouchableOpacity style={styles.button} onPress={handleLock}>
+                <Text style={styles.buttonText}>Lock</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.button} onPress={handleUnlock}>
+                <Text style={styles.buttonText}>Unlock</Text>
+              </TouchableOpacity>
+            )
           ) : (
-            <Button title="Check Proximity" onPress={checkProximity} />
+            <TouchableOpacity style={styles.button} onPress={checkProximity}>
+              <Text style={styles.buttonText}>Check Proximity</Text>
+            </TouchableOpacity>
           )}
         </>
       )}
@@ -100,7 +128,12 @@ const HomeDetailsScreen: React.FC = ({route}) => {
 };
 
 // Helper function to calculate distance
-const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+const getDistanceFromLatLonInKm = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+) => {
   const R = 6371; // Radius of the earth in km
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
@@ -114,6 +147,42 @@ const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
   return R * c; // Distance in km
 };
 
-const deg2rad = deg => deg * (Math.PI / 180);
+const deg2rad = (deg: number) => deg * (Math.PI / 180);
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f4f4f4',
+  },
+  image: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  description: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: '#4CAF50',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+});
 
 export default HomeDetailsScreen;
