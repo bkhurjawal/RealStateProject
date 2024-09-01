@@ -43,7 +43,7 @@ const HomeListScreen: React.FC = () => {
         id: `${homes.length + 1}`,
         address: `Current Location: ${currentLocation.latitude}, ${currentLocation.longitude}`,
         description: 'New home added from your current location.',
-        image: 'https://via.placeholder.com/150',
+        image: 'https://picsum.photos/200',
         latitude: currentLocation.latitude,
         longitude: currentLocation.longitude,
       };
